@@ -2,6 +2,8 @@ package com.example.demo.service;
 
 import com.example.demo.model.request.PostSaveRequest;
 import com.example.demo.repository.InMemoryTransactionRepository;
+import com.example.demo.repository.OutboxRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +25,12 @@ public class PostSaveRecordServiceTest {
     @Mock
     InMemoryTransactionRepository repository;
 
+    @Mock
+    OutboxRepository outboxRepository;
+
+    @Mock
+    ObjectMapper objectMapper;
+
     @Test
     @DisplayName("Success")
     void success() throws Exception {
@@ -33,10 +41,17 @@ public class PostSaveRecordServiceTest {
 
         var odt = request.getDatetime().toInstant();
 
+        Mockito.doReturn("dummy-json")
+                .when(objectMapper)
+                .writeValueAsString(Mockito.anyMap());
+
         postSaveRecordService.execute(request);
 
         Mockito.verify(repository, Mockito.times(1))
                 .save(odt, request.getAmount());
+
+        Mockito.verify(outboxRepository, Mockito.times(1))
+                .save(Mockito.any());
     }
 
     @Test
