@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: wallet-service
+
+wallet:
+  initial-balance: 1000
