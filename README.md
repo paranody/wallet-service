@@ -1,12 +1,9 @@
 # Wallet Service
 
----
-
 A simple service to save transaction and get total balance based on saved transaction.
 
 ## Technologies Used
 
----
 - **Java**
 - **Spring Boot**
 - **H2 in-memory database**
@@ -15,14 +12,10 @@ A simple service to save transaction and get total balance based on saved transa
 
 ## Requirements
 
----
-
 - **JDK 17**
 - **Docker**
 
 ## Running the Server
-
----
 
 ### **1. Clone the repository**
 
@@ -57,18 +50,9 @@ http://localhost:8080
 ```
 ## Note
 
----
-
-
-
 - All timestamps stored as **Instant (UTC)** in DB.
 - API input/output uses **OffsetDateTime**.
 - Outbox pattern guarantees reliable event publishing even during failures.
 
 ## License
-
----
-
-
-
 This project is for backend assessment and demonstration purposes.
