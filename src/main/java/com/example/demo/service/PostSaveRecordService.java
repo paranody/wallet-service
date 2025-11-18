@@ -1,8 +1,9 @@
 package com.example.demo.service;
 
 import com.example.demo.model.entity.OutboxEvent;
+import com.example.demo.model.entity.Transaction;
 import com.example.demo.model.request.PostSaveRequest;
-import com.example.demo.repository.InMemoryTransactionRepository;
+import com.example.demo.repository.TransactionRepository;
 import com.example.demo.repository.OutboxRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
@@ -16,7 +17,7 @@ import java.util.HashMap;
 @RequiredArgsConstructor
 public class PostSaveRecordService {
 
-    private final InMemoryTransactionRepository repository;
+    private final TransactionRepository repository;
     private final OutboxRepository outboxRepository;
     private final ObjectMapper objectMapper;
 
@@ -28,7 +29,12 @@ public class PostSaveRecordService {
 
         var odt = request.getDatetime().toInstant();
 
-        repository.save(odt, request.getAmount());
+        var transaction = Transaction.builder()
+                .datetime(odt)
+                .amount(request.getAmount())
+                .build();
+
+        repository.save(transaction);
 
         publishEvent(request, odt);
 
@@ -49,7 +55,7 @@ public class PostSaveRecordService {
         }
 
         var outboxEvent = OutboxEvent.builder()
-                .eventData("insert")
+                .eventType("insert")
                 .eventData(eventJson)
                 .createdAt(Instant.now())
                 .build();

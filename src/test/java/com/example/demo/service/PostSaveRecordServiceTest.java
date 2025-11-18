@@ -1,7 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.model.request.PostSaveRequest;
-import com.example.demo.repository.InMemoryTransactionRepository;
+import com.example.demo.repository.TransactionRepository;
 import com.example.demo.repository.OutboxRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -23,7 +23,7 @@ public class PostSaveRecordServiceTest {
     PostSaveRecordService postSaveRecordService;
 
     @Mock
-    InMemoryTransactionRepository repository;
+    TransactionRepository repository;
 
     @Mock
     OutboxRepository outboxRepository;
@@ -48,7 +48,7 @@ public class PostSaveRecordServiceTest {
         postSaveRecordService.execute(request);
 
         Mockito.verify(repository, Mockito.times(1))
-                .save(odt, request.getAmount());
+                .save(Mockito.any());
 
         Mockito.verify(outboxRepository, Mockito.times(1))
                 .save(Mockito.any());

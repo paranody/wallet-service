@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface OutboxRepository extends JpaRepository<OutboxEvent, String> {
+public interface OutboxRepository extends JpaRepository<OutboxEvent, Long> {
 
     List<OutboxEvent> findByPublishedFalse(Limit limit);
 }

@@ -1,13 +1,13 @@
 package com.example.demo.service;
 
 import com.example.demo.config.AppConfig;
+import com.example.demo.model.entity.Transaction;
 import com.example.demo.model.request.PostHistoryRequest;
 import com.example.demo.model.response.PostHistoryResponse;
-import com.example.demo.repository.InMemoryTransactionRepository;
+import com.example.demo.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -19,7 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PostHistoryService {
 
-    private final InMemoryTransactionRepository repository;
+    private final TransactionRepository repository;
     private final AppConfig appConfig;
 
     public List<PostHistoryResponse> execute(PostHistoryRequest request) {
@@ -34,28 +34,29 @@ public class PostHistoryService {
         var startInstant = start.toInstant();
         var endInstant = end.toInstant();
 
-        var startUtcHour = ZonedDateTime.ofInstant(startInstant, ZoneOffset.UTC).truncatedTo(ChronoUnit.HOURS);
-        var endUtcHour = ZonedDateTime.ofInstant(endInstant, ZoneOffset.UTC).truncatedTo(ChronoUnit.HOURS);
+        var currentHour = ZonedDateTime.ofInstant(startInstant, ZoneOffset.UTC).truncatedTo(ChronoUnit.HOURS);
+        var endHour = ZonedDateTime.ofInstant(endInstant, ZoneOffset.UTC).truncatedTo(ChronoUnit.HOURS);
 
         var result = new ArrayList<PostHistoryResponse>();
 
         var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssxxx");
-        var currentHour = startUtcHour;
-        while (!currentHour.isAfter(endUtcHour)) {
+        var sum = 0.0;
+        while (!currentHour.isAfter(endHour)) {
 
-            var currentHourInstant = currentHour.toInstant();
+            var hourStart = currentHour.toInstant();
+            var hourEnd = currentHour.plusHours(1).toInstant();
 
-            var sum = repository.getTransaction(currentHourInstant).values().stream()
-                    .mapToDouble(Double::doubleValue)
+            var transactions = repository.findByDatetimeBetween(hourStart, hourEnd);
+
+            sum = sum + transactions.stream()
+                    .mapToDouble(Transaction::getAmount)
                     .sum();
 
             var balance = appConfig.getInitialBalance() + sum;
 
-            var odt = currentHour.toOffsetDateTime();
-
             result.add(
                     PostHistoryResponse.builder()
-                            .datetime(odt.format(formatter))
+                            .datetime(hourStart.atOffset(ZoneOffset.UTC).format(formatter))
                             .amount(balance)
                             .build()
             );

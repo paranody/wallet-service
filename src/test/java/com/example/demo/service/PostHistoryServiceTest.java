@@ -1,9 +1,9 @@
 package com.example.demo.service;
 
 import com.example.demo.config.AppConfig;
+import com.example.demo.model.entity.Transaction;
 import com.example.demo.model.request.PostHistoryRequest;
-import com.example.demo.repository.InMemoryTransactionRepository;
-import org.assertj.core.data.Offset;
+import com.example.demo.repository.TransactionRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,8 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.util.NavigableMap;
-import java.util.TreeMap;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -27,7 +26,7 @@ public class PostHistoryServiceTest {
     PostHistoryService postHistoryService;
 
     @Mock
-    InMemoryTransactionRepository repository;
+    TransactionRepository repository;
 
     @Mock
     AppConfig config;
@@ -42,14 +41,14 @@ public class PostHistoryServiceTest {
 
         Mockito.doReturn(getTrx())
                 .when(repository)
-                .getTransaction(Mockito.any());
+                .findByDatetimeBetween(Mockito.any(), Mockito.any());
 
         var result = postHistoryService.execute(request);
 
         assertEquals(3, result.size());
-        assertEquals(getTrx().firstEntry().getValue(), result.get(0).getAmount());
+        assertEquals(getTrx().get(0).getAmount(), result.get(0).getAmount());
 
-        Mockito.verify(repository, Mockito.times(3)).getTransaction(Mockito.any());
+        Mockito.verify(repository, Mockito.times(3)).findByDatetimeBetween(Mockito.any(), Mockito.any());
 
     }
 
@@ -64,12 +63,13 @@ public class PostHistoryServiceTest {
         assertThrows(IllegalArgumentException.class, () -> postHistoryService.execute(request));
     }
 
-    private NavigableMap<Instant, Double> getTrx() {
-        var instant = OffsetDateTime.parse("2019-10-05T01:45:05+00:00").toInstant();
+    private List<Transaction> getTrx() {
+        var trx = Transaction.builder()
+                .id(1L)
+                .datetime(Instant.now())
+                .amount(10.0)
+                .build();
 
-        NavigableMap<Instant, Double> map = new TreeMap<>();
-        map.put(instant, 1000.0);
-
-        return map;
+        return List.of(trx);
     }
 }
